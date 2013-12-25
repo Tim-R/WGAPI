@@ -11,12 +11,14 @@ Current progress with function support
 -> WoT Functions (19% 5/27)
 	-> Account (0% 0/4)
 	-> Authentication (0% 0/3)
-	-> Clans (63% 5/8)
-		-> Clan Search
-		-> Clan Details
-		-> Clan Battles
-		-> Clan Provinces
-		-> Clan Victory Points
+	-> Clans (88% 7/8)
+		-> Clan list 
+		-> Clan details
+		-> Clan battles
+		-> Top clans by victory points
+		-> Clan provinces
+		-> Clan victory points
+		-> Clan member
 	-> Encyclopedia (0% 0/7)
 	-> Players Ratings (0% 0/5)
 	
