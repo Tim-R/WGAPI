@@ -1,0 +1,26 @@
+PHP Class to retrieve data from the WarGaming developer API
+
+See the APIDocs here: https://na.wargaming.net/developers/api_reference/wot/
+
+Currently under development, use at your own risk.
+
+--------------------------------------
+Current progress with function support
+--------------------------------------
+
+-> WoT Functions (19% 5/27)
+	-> Account (0% 0/4)
+	-> Authentication (0% 0/3)
+	-> Clans (63% 5/8)
+		-> Clan Search
+		-> Clan Details
+		-> Clan Battles
+		-> Clan Provinces
+		-> Clan Victory Points
+	-> Encyclopedia (0% 0/7)
+	-> Players Ratings (0% 0/5)
+	
+-> WoWP Functions (0% 0/14)
+	-> Account (0% 0/3)
+	-> Encyclopedia (0% 0/6)
+	-> Players Ratings (0% 0/5)

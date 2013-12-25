@@ -5,9 +5,7 @@
  * 
  * Simple class to communicate with the Wargaming API
  * Various methods to get various data
- *
- */
- 
+ */ 
 class WGAPI {	
 	private $apikey = NULL;
 	private $language = "en";
@@ -75,11 +73,13 @@ class WGAPI {
 			
 		$this->method = $method;		
 	}
-	
+	///////////////////////
 	/* Account Functions */
-		
-	/* Clan Functions */
+	///////////////////////
 	
+	////////////////////	
+	/* Clan Functions */
+	////////////////////
 	
 	/*
 	 * Get a partial list of clans filtered by name or tag
@@ -121,6 +121,56 @@ class WGAPI {
 	 * @param Array $fields - List of response fields. See developer docs for more information	
 	 */
 	function clanInfo($clan_id, $access_token = "", $fields = array()) {
+		return $this->formStandardClanRequest("info", $clan_id, $access_token, $fields);
+	}
+	
+	/*
+	 * Get a clan's battle list
+	 * @see https://na.wargaming.net/developers/api_reference/wot/clan/battles/
+	 *
+	 * @param mixed $clan_id - A single clan or a list of clans
+	 * @param String $access_token - Access token obtained from authentication. See developer docs for more information	
+	 * @param Array $fields - List of response fields. See developer docs for more information	
+	 */
+	function clanBattles($clan_id, $access_token = "", $fields = array()) {
+		return $this->formStandardClanRequest("battles", $clan_id, $access_token, $fields);
+	}
+	
+	/*
+	 * Get a clan's province list
+	 * @see https://na.wargaming.net/developers/api_reference/wot/clan/provinces/
+	 *
+	 * @param mixed $clan_id - A single clan or a list of clans
+	 * @param String $access_token - Access token obtained from authentication. See developer docs for more information	
+	 * @param Array $fields - List of response fields. See developer docs for more information	
+	 */
+	function clanProvinces($clan_id, $access_token = "", $fields = array()) {
+		return $this->formStandardClanRequest("provinces", $clan_id, $access_token, $fields);
+	}
+	
+	/*
+	 * Get a clan's victory points
+	 * @see https://na.wargaming.net/developers/api_reference/wot/clan/victorypoints/
+	 *
+	 * @param mixed $clan_id - A single clan or a list of clans
+	 * @param String $access_token - Access token obtained from authentication. See developer docs for more information	
+	 * @param Array $fields - List of response fields. See developer docs for more information	
+	 */
+	function clanVictoryPoints($clan_id, $access_token = "", $fields = array()) {
+		return $this->formStandardClanRequest("victorypoints", $clan_id, $access_token, $fields);
+	}
+	////////////////////////////
+	/* Encyclopedia Functions */
+	////////////////////////////
+	
+	//////////////////////////////
+	/* Players rating functions */	
+	//////////////////////////////
+	
+	///////////////////////////////////
+	/* Web request related functions */
+	///////////////////////////////////
+	private function formStandardClanRequest($function, $clan_id, $access_token, $fields) {
 		if($clan_id == NULL) 
 			throw new InvalidArgumentException('clan_id parameter may not be null');
 			
@@ -132,14 +182,9 @@ class WGAPI {
 		if(count($fields) > 0) 
 			$request_data['fields'] = $fields;
 			
-		return $this->doRequest(sprintf($this->api_format, $this->tld, "clan", "info"), $request_data);	
-	}
+		return $this->doRequest(sprintf($this->api_format, $this->tld, "clan", $function), $request_data);	
+	}	
 	
-	/* Encyclopedia Functions */
-	
-	/* Players rating functions */	
-	
-	/* Web request related functions */
 	private function doRequest($url, $data, $force_https = false) {
 		$this->use_https || $force_https ? $prefix = "https://" : $prefix = "http://";
 		
@@ -153,8 +198,7 @@ class WGAPI {
 		$curl = curl_init();
 		
 		curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true); //Follow redirects, if any
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl, CURLOPT_USERAGENT, "WGAPI v1.0 for PHP5");	
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);	
 		curl_setopt($curl, CURLOPT_HEADER, false); //We don't need the header
 		curl_setopt($curl, CURLOPT_ENCODING, ""); // Accept any encoding
 		
