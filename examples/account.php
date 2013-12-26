@@ -1,7 +1,8 @@
 <?php
 include '../WGAPI.php';
+include 'apikey.php';
 
-$wgapi = new WGAPI("9cf7ac06042810532dbebcd3ac2dd192", "NA");
+$wgapi = new WGAPI($apikey, "NA");
 $wgapi->setMethod("POST");
 
 $accounts = json_decode($wgapi->accountListWOT("timroden"), true); //search for accounts matching "timroden"
