@@ -6,15 +6,18 @@
  * Simple class to communicate with the Wargaming API
  * Various methods to get various data
  */ 
-class WGAPI {	
-	private $apikey = NULL;
+class WGAPI {		
 	private $language = "en";
 	private $server = "na";
 	private $tld = "com";
 	private $method = "GET";
 	private $use_https = false;
 	
-	private $api_format = "api.worldoftanks.%s/wot/%s/%s/";
+	private $apikey = NULL;
+	private $access_token = NULL;
+	
+	private $api_format_wot = "api.worldoftanks.%s/wot/%s/%s/";
+	private $api_format_wowp = "api.worldofwarplanes.%s/wowp/%s/%s";
 		
 	/* 
 	 * Construct a new instance of the class
@@ -82,17 +85,76 @@ class WGAPI {
 		$this->use_https = $use_https;
 	}
 	
+	/*
+	 * Set the access token used for private data
+	 * @param String $access_token - Access token obtained from authentication. See developer docs for more information	
+	 */
+	function setAccessToken($access_token) {
+		$this->access_token = $access_token;	
+	}
 	///////////////////////
 	/* Account Functions */
 	///////////////////////
+	/*
+	 * Get a partial list of players filtered by name
+	 * @link https://na.wargaming.net/developers/api_reference/wot/account/list/
+	 *
+	 * @param String $search - Initial characters of the clan name or tag used for search
+	 * @param int $limit - Number of returned entries. Max value: 100 if value != int || value > 100, 100 is used
+	 * @param Array $fields - List of response fields. See developer docs for more information	
+	 *
+	 * @return jsonString - The data returned from the Wargaming API	 
+	 */
+	function accountListWOT($search, $limit = 100, $fields = array()) {
+		if($limit > 100 || !is_int($limit)) 
+			$limit = 100;
+		
+		if($search == NULL) 
+			throw new InvalidArgumentException('search parameter may not be null');
+				
+		$request_data = array('search' => $search);
+		
+		if($limit != 100)
+			$request_data['limit'] = $limit;
+			
+		if(count($fields) > 0) 
+			$request_data['fields'] = $fields;
+			
+		return $this->doRequest(sprintf($this->api_format_wot, $this->tld, "account", "list"), $request_data);
+	}
+	
+	/*
+	 * Get player details
+	 * @link https://na.wargaming.net/developers/api_reference/wot/account/info/
+	 *
+	 * @param mixed $account_id - A single member or a list of members
+	 * @param Array $fields - List of response fields. See developer docs for more information
+	 *
+	 * @return jsonString - The data returned from the Wargaming API	
+	 */
+	function accountInfoWOT($account_id, $fields = array()) {
+		return $this->formStandardAccountRequest("info", $account_id, $fields, true);	
+	}
+	
+	/*
+	 * Get details on a player's vehicles
+	 * @link https://na.wargaming.net/developers/api_reference/wot/account/tanks/
+	 *
+	 * @param mixed $account_id - A single member or a list of members
+	 * @param Array $fields - List of response fields. See developer docs for more information
+	 *
+	 * @return jsonString - The data returned from the Wargaming API	
+	 */
+	function accountVehicles($account_id, $fields = array()) {
+		return $this->formStandardAccountRequest("tanks", $account_id, $fields, true);	
+	}	
 	
 	////////////////////	
 	/* Clan Functions */
-	////////////////////
-	
+	////////////////////	
 	/*
 	 * Get a partial list of clans filtered by name or tag
-	 * @see https://na.wargaming.net/developers/api_reference/wot/clan/list/ (or your applicable developer docs) for more information
+	 * @link https://na.wargaming.net/developers/api_reference/wot/clan/list/ 
 	 *
 	 * @param String $search - Initial characters of the clan name or tag used for search
 	 * @param int $limit - Number of returned entries. Max value: 100 if value != int || value > 100, 100 is used
@@ -119,40 +181,38 @@ class WGAPI {
 		if(count($fields) > 0) 
 			$request_data['fields'] = $fields;
 			
-		return $this->doRequest(sprintf($this->api_format, $this->tld, "clan", "list"), $request_data);
+		return $this->doRequest(sprintf($this->api_format_wot, $this->tld, "clan", "list"), $request_data);
 	}
 	
 	/*
 	 * Get details of a clan
-	 * @see https://na.wargaming.net/developers/api_reference/wot/clan/info/
+	 * @link https://na.wargaming.net/developers/api_reference/wot/clan/info/
 	 *
 	 * @param mixed $clan_id - A single clan or a list of clans
-	 * @param String $access_token - Access token obtained from authentication. See developer docs for more information	
 	 * @param Array $fields - List of response fields. See developer docs for more information	
 	 *
 	 * @return jsonString - Clan info from Wargaming API
 	 */
-	function clanInfo($clan_id, $access_token = "", $fields = array()) {
-		return $this->formStandardClanRequest("info", $clan_id, $access_token, $fields);
+	function clanInfo($clan_id, $fields = array()) {
+		return $this->formStandardClanRequest("info", $clan_id, $fields);
 	}
 	
 	/*
 	 * Get a clan's battle list
-	 * @see https://na.wargaming.net/developers/api_reference/wot/clan/battles/
+	 * @link https://na.wargaming.net/developers/api_reference/wot/clan/battles/
 	 *
 	 * @param mixed $clan_id - A single clan or a list of clans
-	 * @param String $access_token - Access token obtained from authentication. See developer docs for more information	
 	 * @param Array $fields - List of response fields. See developer docs for more information	
 	 *
 	 * @return jsonString - Clan battles list from Wargaming API
 	 */
-	function clanBattles($clan_id, $access_token = "", $fields = array()) {
-		return $this->formStandardClanRequest("battles", $clan_id, $access_token, $fields);
+	function clanBattles($clan_id, $fields = array()) {
+		return $this->formStandardClanRequest("battles", $clan_id, $fields);
 	}
 	
 	/* 
 	 * Get top 100 clans sorted by rating
-	 * @see https://na.wargaming.net/developers/api_reference/wot/clan/top/
+	 * @link https://na.wargaming.net/developers/api_reference/wot/clan/top/
 	 *
 	 * @param String $time - Time delta. See developer docs for more information
 	 * @param Array $fields - List of response fields. See developer docs for more information	
@@ -166,40 +226,81 @@ class WGAPI {
 		if(count($fields) > 0) 
 			$request_data['fields'] = $fields;
 			
-		return $this->doRequest(sprintf($this->api_format, $this->tld, "clan", "top"), $request_data);	
+		return $this->doRequest(sprintf($this->api_format_wot, $this->tld, "clan", "top"), $request_data);	
 	}
 	
 	/*
 	 * Get a clan's province list
-	 * @see https://na.wargaming.net/developers/api_reference/wot/clan/provinces/
+	 * @link https://na.wargaming.net/developers/api_reference/wot/clan/provinces/
 	 *
 	 * @param mixed $clan_id - A single clan or a list of clans
-	 * @param String $access_token - Access token obtained from authentication. See developer docs for more information	
 	 * @param Array $fields - List of response fields. See developer docs for more information		
 	 *
 	 * @return jsonString - Clan provinces list from Wargaming API
 	 */
-	function clanProvinces($clan_id, $access_token = "", $fields = array()) {
-		return $this->formStandardClanRequest("provinces", $clan_id, $access_token, $fields);
+	function clanProvinces($clan_id, $fields = array()) {
+		return $this->formStandardClanRequest("provinces", $clan_id, $fields);
 	}
 	
 	/*
 	 * Get a clan's victory points
-	 * @see https://na.wargaming.net/developers/api_reference/wot/clan/victorypoints/
+	 * @link https://na.wargaming.net/developers/api_reference/wot/clan/victorypoints/
 	 *
 	 * @param mixed $clan_id - A single clan or a list of clans
-	 * @param String $access_token - Access token obtained from authentication. See developer docs for more information	
 	 * @param Array $fields - List of response fields. See developer docs for more information		 	
 	 *
 	 * @return jsonString - Clan's victory points from Wargaming API
 	 */
-	function clanVictoryPoints($clan_id, $access_token = "", $fields = array()) {
-		return $this->formStandardClanRequest("victorypoints", $clan_id, $access_token, $fields);
+	function clanVictoryPoints($clan_id, $fields = array()) {
+		return $this->formStandardClanRequest("victorypoints", $clan_id, $fields);
+	}	
+	
+	/*
+	 * Get a log of a clan's victory points
+	 * @link https://na.wargaming.net/developers/api_reference/wot/clan/victorypointshistory/
+	 *
+	 * @param mixed $clan_id - A single clan or a list of clans
+	 * @param int $limit - Number of results, between 20 and 100
+	 * @param time $since - Stage start time
+	 * @param time $until - Stage end time
+	 * @param int $offset - Offset
+	 * @param Array $fields - List of response fields. See developer docs for more information		 	
+	 *
+	 * @return jsonString - Clan's victory point log from Wargaming API
+	 */
+	function clanVictoryPointsHistory($clan_id, $limit = 0, $since = 0, $until = 0, $offset = NULL, $fields = array()) {
+		if($clan_id == NULL) 
+			throw new InvalidArgumentException('clan_id parameter may not be null');
+			
+		$request_data = array('clan_id' => $clan_id);
+		
+		if($limit != 0) {
+			if($limit < 20) {
+				$limit = 20;
+			} elseif($limit > 100) {
+				$limit = 100;
+			}
+			$request_data['limit'] = $limit;	
+		}
+		
+		if($since != 0)
+			$request_data['since'] = $since;
+			
+		if($until != 0) 
+			$request_data['until'] = $until;
+			
+		if($offset != NULL)
+			$request_data['offset'] = $offset;
+			
+		if(count($fields) > 0) 
+			$request_data['fields'] = $fields;
+			
+		return $this->doRequest(sprintf($this->api_format_wot, $this->tld, "clan", "victorypointshistory"), $request_data);		
 	}
 	
 	/*
 	 * Get member's clan information
-	 * @see https://na.wargaming.net/developers/api_reference/wot/clan/membersinfo/
+	 * @link https://na.wargaming.net/developers/api_reference/wot/clan/membersinfo/
 	 *
 	 * @param mixed $member_id - A single member or a list of members
 	 * @param Array $fields - List of response fields. See developer docs for more information	
@@ -213,7 +314,7 @@ class WGAPI {
 		if(count($fields) > 0) 
 			$request_data['fields'] = $fields;
 			
-		return $this->doRequest(sprintf($this->api_format, $this->tld, "clan", "membersinfo"), $request_data);	
+		return $this->doRequest(sprintf($this->api_format_wot, $this->tld, "clan", "membersinfo"), $request_data);	
 	}
 	
 	////////////////////////////
@@ -225,20 +326,40 @@ class WGAPI {
 		
 	///////////////////////////////////
 	/* Web request related functions */
-	///////////////////////////////////
-	private function formStandardClanRequest($function, $clan_id, $access_token, $fields) {
+	///////////////////////////////////	
+	private function formStandardAccountRequest($function, $account_id, $fields, $is_wot) {
+		if($account_id == NULL) 
+			throw new InvalidArgumentException('account_id parameter may not be null');
+			
+		$uri = $this->api_format_wot;
+		
+		if(!$is_wot) 
+			$url = $this->api_format_wowp;
+			
+		$request_data = array('account_id' => $account_id);
+		
+		if($this->access_token != NULL)
+			$request_data['access_token'] = $this->access_token;
+		
+		if(count($fields) > 0) 
+			$request_data['fields'] = $fields;
+			
+		return $this->doRequest(sprintf($uri, $this->tld, "account", $function), $request_data);
+	}	
+	
+	private function formStandardClanRequest($function, $clan_id, $fields) {
 		if($clan_id == NULL) 
 			throw new InvalidArgumentException('clan_id parameter may not be null');
 			
 		$request_data = array('clan_id' => $clan_id);
 		
-		if($acess_token != "")
-			$request_data['access_token'] = $access_token;
+		if($this->access_token != NULL)
+			$request_data['access_token'] = $this->access_token;
 		
 		if(count($fields) > 0) 
 			$request_data['fields'] = $fields;
 			
-		return $this->doRequest(sprintf($this->api_format, $this->tld, "clan", $function), $request_data);	
+		return $this->doRequest(sprintf($this->api_format_wot, $this->tld, "clan", $function), $request_data);	
 	}	
 	
 	private function doRequest($url, $data, $force_https = false) {

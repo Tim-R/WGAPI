@@ -8,16 +8,22 @@ Currently under development, use at your own risk.
 Current progress with function support
 --------------------------------------
 
--> WoT Functions (19% 5/27)
-	-> Account (0% 0/4)
+Overall: 28% 11/40
+
+-> WoT Functions (42% 11/26)
+	-> Account (100%*)
+		-> Player list
+		-> Player personal data
+		-> Player's vehicles
 	-> Authentication (0% 0/3)
-	-> Clans (88% 7/8)
+	-> Clans (100%)
 		-> Clan list 
 		-> Clan details
 		-> Clan battles
 		-> Top clans by victory points
 		-> Clan provinces
 		-> Clan victory points
+		-> Clan victory points log
 		-> Clan member
 	-> Encyclopedia (0% 0/7)
 	-> Players Ratings (0% 0/5)
@@ -26,3 +32,5 @@ Current progress with function support
 	-> Account (0% 0/3)
 	-> Encyclopedia (0% 0/6)
 	-> Players Ratings (0% 0/5)
+	
+* There are 4 account functions for WoT, but due to the fact that "player ratings" will be disabled, we will not implement it.
