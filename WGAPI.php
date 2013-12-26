@@ -1,4 +1,7 @@
 <?php
+define('API_WOT', 'wot');
+define('API_WOWP', 'wowp');
+
 /*
  * WG API Communication class
  * @Author Tim Roden <tim@timroden.ca>
@@ -17,7 +20,7 @@ class WGAPI {
 	private $access_token = NULL;
 	
 	private $api_format_wot = "api.worldoftanks.%s/wot/%s/%s/";
-	private $api_format_wowp = "api.worldofwarplanes.%s/wowp/%s/%s";
+	private $api_format_wowp = "api.worldofwarplanes.%s/wowp/%s/%s/";
 		
 	/* 
 	 * Construct a new instance of the class
@@ -99,13 +102,14 @@ class WGAPI {
 	 * Get a partial list of players filtered by name
 	 * @link https://na.wargaming.net/developers/api_reference/wot/account/list/
 	 *
+	 * @param API $api - The API to use. USe the constant API_WOT for the WoT API, or API_WOWP for the WoWP API.
 	 * @param String $search - Initial characters of the clan name or tag used for search
 	 * @param int $limit - Number of returned entries. Max value: 100 if value != int || value > 100, 100 is used
 	 * @param Array $fields - List of response fields. See developer docs for more information	
 	 *
-	 * @return jsonString - The data returned from the Wargaming API	 
+	 * @return jsonString	 
 	 */
-	function accountListWOT($search, $limit = 100, $fields = array()) {
+	function accountList($api, $search, $limit = 100, $fields = array()) {
 		if($limit > 100 || !is_int($limit)) 
 			$limit = 100;
 		
@@ -120,20 +124,26 @@ class WGAPI {
 		if(count($fields) > 0) 
 			$request_data['fields'] = $fields;
 			
-		return $this->doRequest(sprintf($this->api_format_wot, $this->tld, "account", "list"), $request_data);
+		$uri = $this->api_format_wot;
+		
+		if($api == API_WOWP)
+			$uri = $this->api_format_wowp;
+			
+		return $this->doRequest(sprintf($uri, $this->tld, "account", "list"), $request_data);
 	}
 	
 	/*
 	 * Get player details
 	 * @link https://na.wargaming.net/developers/api_reference/wot/account/info/
 	 *
+	 * @param API $api - The API to use. USe the constant API_WOT for the WoT API, or API_WOWP for the WoWP API.
 	 * @param mixed $account_id - A single member or a list of members
 	 * @param Array $fields - List of response fields. See developer docs for more information
 	 *
-	 * @return jsonString - The data returned from the Wargaming API	
+	 * @return jsonString	
 	 */
-	function accountInfoWOT($account_id, $fields = array()) {
-		return $this->formStandardAccountRequest("info", $account_id, $fields, true);	
+	function accountInfo($api, $account_id, $fields = array()) {
+		return $this->formStandardAccountRequest($api, "info", $account_id, $fields, true);	
 	}
 	
 	/*
@@ -143,10 +153,10 @@ class WGAPI {
 	 * @param mixed $account_id - A single member or a list of members
 	 * @param Array $fields - List of response fields. See developer docs for more information
 	 *
-	 * @return jsonString - The data returned from the Wargaming API	
+	 * @return jsonString	
 	 */
 	function accountVehicles($account_id, $fields = array()) {
-		return $this->formStandardAccountRequest("tanks", $account_id, $fields, true);	
+		return $this->formStandardAccountRequest(API_WOT, "tanks", $account_id, $fields, true);	
 	}	
 	
 	////////////////////	
@@ -161,7 +171,7 @@ class WGAPI {
 	 * @param String $order_by - Sorting. See developer docs for valid values
 	 * @param Array $fields - List of response fields. See developer docs for more information	
 	 *
-	 * @return jsonString - The data returned from the Wargaming API	 
+	 * @return jsonString	 
 	 */
 	function clanList($search, $limit = 100, $order_by = "", $fields = array()) {
 		if($limit > 100 || !is_int($limit)) 
@@ -191,7 +201,7 @@ class WGAPI {
 	 * @param mixed $clan_id - A single clan or a list of clans
 	 * @param Array $fields - List of response fields. See developer docs for more information	
 	 *
-	 * @return jsonString - Clan info from Wargaming API
+	 * @return jsonString
 	 */
 	function clanInfo($clan_id, $fields = array()) {
 		return $this->formStandardClanRequest("info", $clan_id, $fields);
@@ -204,7 +214,7 @@ class WGAPI {
 	 * @param mixed $clan_id - A single clan or a list of clans
 	 * @param Array $fields - List of response fields. See developer docs for more information	
 	 *
-	 * @return jsonString - Clan battles list from Wargaming API
+	 * @return jsonString
 	 */
 	function clanBattles($clan_id, $fields = array()) {
 		return $this->formStandardClanRequest("battles", $clan_id, $fields);
@@ -216,6 +226,8 @@ class WGAPI {
 	 *
 	 * @param String $time - Time delta. See developer docs for more information
 	 * @param Array $fields - List of response fields. See developer docs for more information	
+	 *
+	 * @return jsonString
 	 */
 	function clanTop($time = "current_season", $fields = array()) {
 		$request_data = array();
@@ -236,7 +248,7 @@ class WGAPI {
 	 * @param mixed $clan_id - A single clan or a list of clans
 	 * @param Array $fields - List of response fields. See developer docs for more information		
 	 *
-	 * @return jsonString - Clan provinces list from Wargaming API
+	 * @return jsonString
 	 */
 	function clanProvinces($clan_id, $fields = array()) {
 		return $this->formStandardClanRequest("provinces", $clan_id, $fields);
@@ -249,7 +261,7 @@ class WGAPI {
 	 * @param mixed $clan_id - A single clan or a list of clans
 	 * @param Array $fields - List of response fields. See developer docs for more information		 	
 	 *
-	 * @return jsonString - Clan's victory points from Wargaming API
+	 * @return jsonString
 	 */
 	function clanVictoryPoints($clan_id, $fields = array()) {
 		return $this->formStandardClanRequest("victorypoints", $clan_id, $fields);
@@ -266,7 +278,7 @@ class WGAPI {
 	 * @param int $offset - Offset
 	 * @param Array $fields - List of response fields. See developer docs for more information		 	
 	 *
-	 * @return jsonString - Clan's victory point log from Wargaming API
+	 * @return jsonString
 	 */
 	function clanVictoryPointsHistory($clan_id, $limit = 0, $since = 0, $until = 0, $offset = NULL, $fields = array()) {
 		if($clan_id == NULL) 
@@ -304,6 +316,8 @@ class WGAPI {
 	 *
 	 * @param mixed $member_id - A single member or a list of members
 	 * @param Array $fields - List of response fields. See developer docs for more information	
+	 *
+	 * @return jsonString
 	 */	
 	function clanMemberInfo($member_id, $fields = array()) {
 		if($member_id == NULL)
@@ -322,27 +336,194 @@ class WGAPI {
 	////////////////////////////	
 	//////////////////////////////
 	/* Players rating functions */	
-	//////////////////////////////
+	//////////////////////////////	
+	/*
+	 * Get a dictionary of rating types with details
+	 * @link https://na.wargaming.net/developers/api_reference/wot/ratings/types/
+	 *
+	 * @param API $api - The API to use. USe the constant API_WOT for the WoT API, or API_WOWP for the WoWP API.
+	 * @param Array $fields - List of response fields. See developer docs for more information	
+	 *
+	 * @return jsonString
+	 */
+	function ratingTypes($api, $fields = array()) {
+		$request_data = array();
 		
-	///////////////////////////////////
-	/* Web request related functions */
-	///////////////////////////////////	
-	private function formStandardAccountRequest($function, $account_id, $fields, $is_wot) {
-		if($account_id == NULL) 
-			throw new InvalidArgumentException('account_id parameter may not be null');
+		if(count($fields) > 0) 
+			$request_data['fields'] = $fields;	
 			
 		$uri = $this->api_format_wot;
 		
-		if(!$is_wot) 
-			$url = $this->api_format_wowp;
+		if($api == API_WOWP)
+			$uri = $this->api_format_wowp;
 			
+		return $this->doRequest(sprintf($uri, $this->tld, "ratings", "types"), $request_data);
+	}
+	
+	/*
+	 * Returns player ratings by specified IDs
+	 * @link https://na.wargaming.net/developers/api_reference/wot/ratings/accounts/
+	 *
+	 * @param API $api - The API to use. USe the constant API_WOT for the WoT API, or API_WOWP for the WoWP API.
+	 * @param mixed $account_id - A single account or a list of accounts
+	 * @param String $type - Rating type. See developer docs for valid values.
+	 * @param time $date - Date in UNIX time or ISO-8601 format
+	 * @param Array $fields - List of response fields. See developer docs for more information	
+	 *
+	 * @return jsonString
+	 */
+	function ratingsAccount($api, $account_id, $type, $date = 0, $fields = array()) {
+		if($account_id == NULL)
+			throw new InvalidArgumentException('account_id parameter may not be null');
+			
+		if($type == NULL)
+			throw new InvalidArgumentException('type parameter may not be null');
+		
+		
+		$request_data = array('account_id' => $account_id, 'type' => $type);
+		
+		if($date != 0) 
+			$request_data['date'] = $date;
+		
+		if(count($fields) > 0) 
+			$request_data['fields'] = $fields;	
+			
+		$uri = $this->api_format_wot;
+		
+		if($api == API_WOWP)
+			$uri = $this->api_format_wowp;
+			
+		return $this->doRequest(sprintf($uri, $this->tld, "ratings", "accounts"), $request_data);			
+	}
+	
+	/*
+	 * Returns list of adjacent positions in specified rating
+	 * @link https://na.wargaming.net/developers/api_reference/wot/ratings/neighbors/
+	 *
+	 * @param API $api - The API to use. USe the constant API_WOT for the WoT API, or API_WOWP for the WoWP API.
+	 * @param mixed $account_id - A single account or a list of accounts
+	 * @param String $type - Rating type. See developer docs for valid values.
+	 * @param String $rank_field - Which field to get top players for
+	 * @param time $date - Date in UNIX time or ISO-8601 format
+	 * @param int $limit - Max. number of adjacent positions in rating
+	 * @param Array $fields - List of response fields. See developer docs for more information	
+	 *
+	 * @return jsonString
+	 */
+	function ratingsNeighbors($api, $account_id, $type, $rank_field, $date = 0, $limit = NULL, $fields = array()) {
+		if($account_id == NULL)
+			throw new InvalidArgumentException('account_id parameter may not be null');
+			
+		if($type == NULL)
+			throw new InvalidArgumentException('type parameter may not be null');
+			
+		if($rank_field == NULL)
+			throw new InvalidArgumentException('rank_field parameter may not be null');		
+		
+		$request_data = array('account_id' => $account_id, 'type' => $type, 'rank_field' => $rank_field);
+		
+		if($date != 0) 
+			$request_data['date'] = $date;
+			
+		if($limit != NULL)
+			$request_data['limit'] = $limit;
+		
+		if(count($fields) > 0) 
+			$request_data['fields'] = $fields;	
+		
+		$uri = $this->api_format_wot;
+		
+		if($api == API_WOWP)
+			$uri = $this->api_format_wowp;
+			
+		return $this->doRequest(sprintf($uri, $this->tld, "ratings", "neighbors"), $request_data);			
+	}
+	
+	/*
+	 * Returns top players by specified parameter
+	 * @link https://na.wargaming.net/developers/api_reference/wot/ratings/top/
+	 *
+	 * @param API $api - The API to use. USe the constant API_WOT for the WoT API, or API_WOWP for the WoWP API.
+	 * @param String $type - Rating type. See developer docs for valid values.
+	 * @param String $rank_field - Which field to get top players for
+	 * @param time $date - Date in UNIX time or ISO-8601 format
+	 * @param int $limit - Max. number of adjacent positions in rating
+	 * @param Array $fields - List of response fields. See developer docs for more information	
+	 *
+	 * @return jsonString
+	 */	
+	function ratingsTop($api, $type, $rank_field, $date = 0, $limit = NULL, $fields = array()) {
+		if($type == NULL)
+			throw new InvalidArgumentException('type parameter may not be null');
+			
+		if($rank_field == NULL)
+			throw new InvalidArgumentException('rank_field parameter may not be null');	
+			
+		$request_data = array('type' => $type, 'rank_field' => $rank_field);
+				
+		if($date != 0) 
+			$request_data['date'] = $date;
+			
+		if($limit != NULL)
+			$request_data['limit'] = $limit;
+		
+		if(count($fields) > 0) 
+			$request_data['fields'] = $fields;	
+			
+		$uri = $this->api_format_wot;
+		
+		if($api == API_WOWP)
+			$uri = $this->api_format_wowp;
+			
+		return $this->doRequest(sprintf($uri, $this->tld, "ratings", "top"), $request_data);	
+	}
+	
+	/*
+	 * Returns dates with available ratings data
+	 * @link https://na.wargaming.net/developers/api_reference/wot/ratings/dates/
+	 *
+	 * @param API $api - The API to use. USe the constant API_WOT for the WoT API, or API_WOWP for the WoWP API.
+	 * @param String $type - Rating type. See developer docs for valid values.
+	 * @param Array $fields - List of response fields. See developer docs for more information	
+	 *
+	 * @return jsonString
+	 */		
+	function ratingDates($api, $type, $fields = array()) {
+		if($type == NULL)
+			throw new InvalidArgumentException('type parameter may not be null');
+		
+		$request_data = array('type' => $type);
+		
+		if(count($fields) > 0) 
+			$request_data['fields'] = $fields;	
+			
+		$uri = $this->api_format_wot;
+		
+		if($api == API_WOWP)
+			$uri = $this->api_format_wowp;
+			
+		return $this->doRequest(sprintf($uri, $this->tld, "ratings", "dates"), $request_data);
+	}
+	
+	////////////////////////////////
+	/* Request builders / helpers */
+	////////////////////////////////
+	private function formStandardAccountRequest($api, $function, $account_id, $fields) {
+		if($account_id == NULL) 
+			throw new InvalidArgumentException('account_id parameter may not be null');
+				
 		$request_data = array('account_id' => $account_id);
 		
 		if($this->access_token != NULL)
 			$request_data['access_token'] = $this->access_token;
 		
 		if(count($fields) > 0) 
-			$request_data['fields'] = $fields;
+			$request_data['fields'] = $fields;		
+		
+		$uri = $this->api_format_wot;
+		
+		if($api == API_WOWP) 
+			$url = $this->api_format_wowp;
 			
 		return $this->doRequest(sprintf($uri, $this->tld, "account", $function), $request_data);
 	}	
@@ -361,7 +542,10 @@ class WGAPI {
 			
 		return $this->doRequest(sprintf($this->api_format_wot, $this->tld, "clan", $function), $request_data);	
 	}	
-	
+		
+	///////////////////////////////////
+	/* Web request related functions */
+	///////////////////////////////////	
 	private function doRequest($url, $data, $force_https = false) {
 		$this->use_https || $force_https ? $prefix = "https://" : $prefix = "http://";
 		

@@ -8,9 +8,9 @@ Currently under development, use at your own risk.
 Current progress with function support
 --------------------------------------
 
-Overall: 28% 11/40
+Overall: 60% 11/40
 
--> WoT Functions (42% 11/26)
+-> WoT Functions (62% 16/26)
 	-> Account (100%*)
 		-> Player list
 		-> Player personal data
@@ -26,11 +26,23 @@ Overall: 28% 11/40
 		-> Clan victory points log
 		-> Clan member
 	-> Encyclopedia (0% 0/7)
-	-> Players Ratings (0% 0/5)
-	
--> WoWP Functions (0% 0/14)
-	-> Account (0% 0/3)
+	-> Players Ratings (100%)
+		-> Types of ratings
+		-> Players ratings
+		-> Adjacent positions in rating
+		-> Top Players
+		-> Dates with available ratings	
+-> WoWP Functions (57% 8/14)
+	-> Account (100%)
+		-> Player list
+		-> Player personal data
+		-> Player's vehicles
 	-> Encyclopedia (0% 0/6)
-	-> Players Ratings (0% 0/5)
+	-> Players Ratings (100%)
+		-> Types of ratings
+		-> Players ratings
+		-> Adjacent positions in rating
+		-> Top Players
+		-> Dates with available ratings	
 	
 * There are 4 account functions for WoT, but due to the fact that "player ratings" will be disabled, we will not implement it.
