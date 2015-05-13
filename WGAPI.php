@@ -19,6 +19,7 @@ class WGAPI {
 	private $apikey = NULL;
 	private $access_token = NULL;
 	
+	private $api_format_wgn = "api.worldoftanks.%s/wgn/%s/%s/";
 	private $api_format_wot = "api.worldoftanks.%s/wot/%s/%s/";
 	private $api_format_wowp = "api.worldofwarplanes.%s/wowp/%s/%s/";
 		
@@ -191,7 +192,7 @@ class WGAPI {
 		if(count($fields) > 0) 
 			$request_data['fields'] = $fields;
 			
-		return $this->doRequest(sprintf($this->api_format_wot, $this->tld, "clan", "list"), $request_data);
+		return $this->doRequest(sprintf($this->api_format_wgn, $this->tld, "clans", "list"), $request_data);
 	}
 	
 	/*
@@ -328,7 +329,7 @@ class WGAPI {
 		if(count($fields) > 0) 
 			$request_data['fields'] = $fields;
 			
-		return $this->doRequest(sprintf($this->api_format_wot, $this->tld, "clan", "membersinfo"), $request_data);	
+		return $this->doRequest(sprintf($this->api_format_wgn, $this->tld, "clans", "membersinfo"), $request_data);	
 	}
 	
 	////////////////////////////
@@ -540,7 +541,11 @@ class WGAPI {
 		if(count($fields) > 0) 
 			$request_data['fields'] = $fields;
 			
-		return $this->doRequest(sprintf($this->api_format_wot, $this->tld, "clan", $function), $request_data);	
+	        // wot api for clans is partial deprecated...
+	        if( $function === 'info' ) 
+            		return $this->doRequest(sprintf($this->api_format_wgn, $this->tld, "clans", $function), $request_data);	
+        	else 
+            		return $this->doRequest(sprintf($this->api_format_wot, $this->tld, "clan", $function), $request_data);	
 	}	
 		
 	///////////////////////////////////
